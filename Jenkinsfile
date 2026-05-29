@@ -21,6 +21,7 @@ pipeline {
         stage("Zip the build") {
             steps {
                 sh 'zip -r proj.zip . -x "node_modules/*" -x ".git/*" -x ".env"'
+                archiveArtifacts artifacts: 'proj.zip', fingerprint: true
             }
         }
 
