@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Node.js Express app running on AWS Elastic Beanstalk" />
+  <title>EB Node App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0d14;
+      --surface:   #111827;
+      --border:    #1f2937;
+      --accent:    #6366f1;
+      --accent2:   #8b5cf6;
+      --green:     #10b981;
+      --text:      #f9fafb;
+      --muted:     #9ca3af;
+      --card-bg:   rgba(17, 24, 39, 0.8);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated background ── */
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .bg-glow::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      left: -20%;
+      width: 70vw;
+      height: 70vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99,102,241,.18) 0%, transparent 70%);
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .bg-glow::after {
+      content: '';
+      position: absolute;
+      bottom: -20%;
+      right: -10%;
+      width: 55vw;
+      height: 55vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(139,92,246,.14) 0%, transparent 70%);
+      animation: drift 15s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(4%, 5%) scale(1.08); }
+    }
+
+    /* ── Layout ── */
+    main {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      gap: 2.5rem;
+    }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .35rem 1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(99,102,241,.4);
+      background: rgba(99,102,241,.08);
+      font-size: .75rem;
+      font-weight: 500;
+      color: #a5b4fc;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      animation: fadeDown .6s ease both;
+    }
+    .badge-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .6; transform: scale(1.3); }
+    }
+
+    /* ── Hero ── */
+    .hero { text-align: center; max-width: 640px; animation: fadeDown .7s .1s ease both; }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #fff 30%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: .8rem;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    /* ── Cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      width: 100%;
+      max-width: 780px;
+      animation: fadeUp .7s .2s ease both;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.4rem 1.5rem;
+      backdrop-filter: blur(12px);
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+      cursor: default;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(99,102,241,.5);
+      box-shadow: 0 8px 32px rgba(99,102,241,.15);
+    }
+    .card-icon {
+      font-size: 1.6rem;
+      margin-bottom: .65rem;
+    }
+    .card h3 {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: .3rem;
+    }
+    .card .value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ── Endpoints ── */
+    .endpoints {
+      width: 100%;
+      max-width: 780px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+      animation: fadeUp .7s .3s ease both;
+    }
+    .endpoints h2 {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 1rem;
+    }
+    .ep-list { display: flex; flex-direction: column; gap: .6rem; }
+    .ep {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .65rem 1rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid transparent;
+      text-decoration: none;
+      color: inherit;
+      transition: background .2s, border-color .2s;
+    }
+    .ep:hover { background: rgba(99,102,241,.1); border-color: rgba(99,102,241,.3); }
+    .method {
+      font-size: .7rem;
+      font-weight: 700;
+      padding: .2rem .55rem;
+      border-radius: 6px;
+      background: rgba(99,102,241,.2);
+      color: #a5b4fc;
+      letter-spacing: .04em;
+      flex-shrink: 0;
+    }
+    .ep-path { font-family: 'Courier New', monospace; font-size: .9rem; flex: 1; }
+    .ep-desc { font-size: .8rem; color: var(--muted); }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: .8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    footer span { color: var(--accent); }
+
+    /* ── Animations ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <main>
+    <!-- Badge -->
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Live on AWS Elastic Beanstalk
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1>Node.js &amp; Express<br />on Elastic Beanstalk</h1>
+      <p>A simple, production-ready starter app. Explore the API endpoints below or check the health status of this instance.</p>
+    </section>
+
+    <!-- Status cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>Status</h3>
+        <div class="value" id="status-val">Checking…</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🟢</div>
+        <h3>Environment</h3>
+        <div class="value" id="env-val">—</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🕒</div>
+        <h3>Server Time</h3>
+        <div class="value" id="time-val">—</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <h3>Node Version</h3>
+        <div class="value" id="node-val">—</div>
+      </div>
+    </div>
+
+    <!-- Endpoints -->
+    <section class="endpoints">
+      <h2>API Endpoints</h2>
+      <div class="ep-list">
+        <a class="ep" href="/api/status" id="ep-root">
+          <span class="method">GET</span>
+          <span class="ep-path">/api/status</span>
+          <span class="ep-desc">Status &amp; server info</span>
+        </a>
+        <a class="ep" href="/health" id="ep-health">
+          <span class="method">GET</span>
+          <span class="ep-path">/health</span>
+          <span class="ep-desc">Health check &amp; uptime</span>
+        </a>
+        <a class="ep" href="/api/info" id="ep-info">
+          <span class="method">GET</span>
+          <span class="ep-path">/api/info</span>
+          <span class="ep-desc">Node runtime details</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Built with <span>Node.js</span> &amp; <span>Express</span> · Deployed on <span>AWS Elastic Beanstalk</span>
+  </footer>
+
+  <script>
+    // Populate status cards from the API
+    async function loadStatus() {
+      try {
+        const [root, info] = await Promise.all([
+          fetch('/api/status').then(r => r.json()),
+          fetch('/api/info').then(r => r.json()),
+        ]);
+        document.getElementById('status-val').textContent = root.status === 'ok' ? '✅ Healthy' : '⚠️ Degraded';
+        document.getElementById('env-val').textContent = root.environment ?? '—';
+        document.getElementById('time-val').textContent = new Date(root.timestamp).toLocaleTimeString();
+        document.getElementById('node-val').textContent = info.node ?? '—';
+      } catch {
+        document.getElementById('status-val').textContent = '⚠️ Unavailable';
+      }
+    }
+
+    loadStatus();
+  </script>
+</body>
+</html>

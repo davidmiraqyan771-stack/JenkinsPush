@@ -1,0 +1,19 @@
+{
+  "name": "eb-node-app",
+  "version": "1.0.0",
+  "description": "Simple Node.js Express app for AWS Elastic Beanstalk",
+  "main": "app.js",
+  "engines": {
+    "node": ">=20.x"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
