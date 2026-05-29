@@ -1,5 +1,5 @@
 pipeline {
-    agent ubuntu
+    agent {"ubuntu"}
 
     tools {
         nodejs 'Node js 26'
