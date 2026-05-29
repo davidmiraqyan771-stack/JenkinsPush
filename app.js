@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/status', (req, res) => {
   res.json({
     status: 'ok',
-    message: '🚀 Node.js app is running on Elastic Beanstalk! (Updated)',
+    message: '🚀 Node.js app is running on Elastic Beanstalk! (Updated again for Jenkins)',
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
   });
