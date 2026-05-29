@@ -1,7 +1,7 @@
 'use strict';
 
 const express = require('express');
-const path    = require('path');
+const path = require('path');
 
 const app = express();
 
@@ -19,8 +19,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // The JSON status endpoint is kept at /api/status for programmatic access
 app.get('/api/status', (req, res) => {
   res.json({
-    status: 'okidadads',
-    message: '🚀 Node.js app is running on Elastic Beanstalk! (Updated again for Jenkins)',
+    status: 'okddddadaddasdasdddddadadd',
+    message: '🚀 Node.js app is running on Elastic Beanstalk! (Updated)',
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
   });
