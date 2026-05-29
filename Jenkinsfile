@@ -20,7 +20,7 @@ pipeline {
 
         stage("Zip the build") {
             steps {
-                zip(zipFile: 'proj.zip', dir: '.' archive: true, exclude: 'node_modules/**')
+                zip(zipFile: 'proj.zip', dir: '.', archive: true, exclude: 'node_modules/**')
             }
         }
 
